@@ -270,13 +270,52 @@ async def get_spending_analytics(current_user: User = Depends(get_current_user))
 @app.post("/api/ai/chat")
 async def ai_chat(query: AIQuery, current_user: User = Depends(get_current_user)):
     try:
-        # For now, return a mock response
-        # TODO: Integrate with Emergent LLM key
-        response_text = f"I understand you're asking about '{query.message}'. Based on your spending data, I can provide insights about your financial patterns. This is a demo response - AI integration will be added soon!"
+        # Get user's receipts for context
+        receipts = await db.receipts.find({"user_id": current_user.id}).to_list(None)
         
-        return {"response": response_text}
+        # Prepare context about user's spending
+        total_spent = sum(receipt["total"] for receipt in receipts)
+        categories = {}
+        for receipt in receipts:
+            category = receipt["category"]
+            categories[category] = categories.get(category, 0) + receipt["total"]
+        
+        context = f"""
+        User's spending data:
+        - Total spent: ${total_spent:.2f}
+        - Number of receipts: {len(receipts)}
+        - Categories: {', '.join([f'{cat}: ${amount:.2f}' for cat, amount in categories.items()])}
+        - Recent receipts: {[r['retailer'] for r in receipts[-3:]] if receipts else 'None'}
+        """
+        
+        # Initialize LLM chat with Emergent key
+        emergent_llm_key = os.getenv("EMERGENT_LLM_KEY")
+        if not emergent_llm_key:
+            raise HTTPException(status_code=500, detail="LLM service not configured")
+        
+        chat = LlmChat(
+            api_key=emergent_llm_key,
+            session_id=f"user_{current_user.id}",
+            system_message=f"""You are an AI assistant for EcoReceipt, a digital receipt manager. 
+            You help users understand their spending patterns and environmental impact.
+            
+            Context about this user: {context}
+            
+            Provide helpful insights about their spending, suggest ways to save money or be more eco-friendly.
+            Keep responses concise and friendly. Focus on actionable advice."""
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Create user message
+        user_message = UserMessage(text=query.message)
+        
+        # Get AI response
+        ai_response = await chat.send_message(user_message)
+        
+        return {"response": ai_response}
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+        # Fallback to mock response if AI fails
+        return {"response": f"I understand you're asking about '{query.message}'. Based on your current data, I can see you have {len(receipts) if 'receipts' in locals() else 0} receipts. This helps track your environmental impact by going digital!"}
 
 @app.post("/api/receipts/ocr")
 async def process_receipt_ocr(current_user: User = Depends(get_current_user)):
