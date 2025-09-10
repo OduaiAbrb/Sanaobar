@@ -21,80 +21,75 @@ import {
   DollarSign
 } from 'lucide-react';
 
-// Mock data
-const mockReceipts = [
-  {
-    id: 1,
-    retailer: 'Green Grocers',
-    logo: 'https://placehold.co/50x50/4CAF50/FFFFFF?text=GG',
-    date: '2025-01-15',
-    time: '14:30',
-    total: 45.50,
-    items: [
-      { name: 'Organic Apples', quantity: 2, price: 8.99 },
-      { name: 'Whole Grain Bread', quantity: 1, price: 4.50 },
-      { name: 'Free Range Eggs', quantity: 1, price: 6.99 },
-      { name: 'Almond Milk', quantity: 2, price: 12.98 }
-    ],
-    subtotal: 33.46,
-    tax: 3.35,
-    category: 'Groceries'
-  },
-  {
-    id: 2,
-    retailer: 'EcoMart',
-    logo: 'https://placehold.co/50x50/2E7D32/FFFFFF?text=EM',
-    date: '2025-01-14',
-    time: '11:45',
-    total: 89.25,
-    items: [
-      { name: 'Bamboo Toothbrush Set', quantity: 1, price: 15.99 },
-      { name: 'Reusable Water Bottle', quantity: 1, price: 24.99 },
-      { name: 'Organic Shampoo', quantity: 2, price: 32.50 }
-    ],
-    subtotal: 73.48,
-    tax: 7.35,
-    category: 'Personal Care'
-  },
-  {
-    id: 3,
-    retailer: 'Fresh Foods',
-    logo: 'https://placehold.co/50x50/66BB6A/FFFFFF?text=FF',
-    date: '2025-01-13',
-    time: '18:20',
-    total: 67.80,
-    items: [
-      { name: 'Organic Salmon', quantity: 1, price: 18.99 },
-      { name: 'Mixed Vegetables', quantity: 1, price: 12.50 },
-      { name: 'Quinoa', quantity: 2, price: 19.98 }
-    ],
-    subtotal: 51.47,
-    tax: 5.15,
-    category: 'Groceries'
-  },
-  {
-    id: 4,
-    retailer: 'Local Cafe',
-    logo: 'https://placehold.co/50x50/81C784/FFFFFF?text=LC',
-    date: '2025-01-12',
-    time: '09:15',
-    total: 12.45,
-    items: [
-      { name: 'Oat Milk Latte', quantity: 1, price: 4.50 },
-      { name: 'Avocado Toast', quantity: 1, price: 6.95 }
-    ],
-    subtotal: 11.45,
-    tax: 1.00,
-    category: 'Dining'
-  }
-];
+// API Configuration
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-const mockChatMessages = [
-  {
-    type: 'ai',
-    message: 'Hello! I\'m your Eco Assistant. I can help you analyze your spending patterns and environmental impact. How can I help you today?'
+// API Service
+const apiService = {
+  async fetchWithAuth(url: string, options: RequestInit = {}) {
+    const token = localStorage.getItem('access_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    };
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      ...options,
+      headers,
+    });
+
+    if (response.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      window.location.reload();
+      return;
+    }
+
+    return response;
+  },
+
+  async getReceipts() {
+    const response = await this.fetchWithAuth('/api/receipts');
+    return response?.json();
+  },
+
+  async getEnvironmentalImpact() {
+    const response = await this.fetchWithAuth('/api/analytics/environmental-impact');
+    return response?.json();
+  },
+
+  async getSpendingAnalytics() {
+    const response = await this.fetchWithAuth('/api/analytics/spending');
+    return response?.json();
+  },
+
+  async sendChatMessage(message: string) {
+    const response = await this.fetchWithAuth('/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+    return response?.json();
+  },
+
+  async login(email: string, password: string) {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    return response.json();
+  },
+
+  async register(email: string, password: string, name: string) {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name }),
+    });
+    return response.json();
   }
-];
+};
 
 const suggestedQuestions = [
   'How much did I spend on groceries last month?',
