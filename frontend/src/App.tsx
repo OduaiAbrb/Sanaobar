@@ -72,7 +72,8 @@ const apiService = {
       method: 'POST',
       body: JSON.stringify({ message }),
     });
-    return response?.json();
+    if (!response) return { response: "Unable to connect to AI service" };
+    return response.json();
   },
 
   async login(email: string, password: string) {
