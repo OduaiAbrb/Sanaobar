@@ -239,7 +239,7 @@ function App() {
     setTimeout(() => handleSendMessage(), 100);
   };
 
-  const filteredReceipts = mockReceipts.filter(receipt =>
+  const filteredReceipts = receipts.filter(receipt =>
     receipt.retailer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
