@@ -19,6 +19,26 @@ load_dotenv()
 # Initialize FastAPI app
 app = FastAPI(title="EcoReceipt API", description="Digital Receipt Manager API")
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database collections and test connection"""
+    try:
+        # Test database connection
+        await client.admin.command('ping')
+        print("✅ MongoDB connection successful")
+        
+        # Ensure collections exist
+        collections = await db.list_collection_names()
+        if "users" not in collections:
+            await db.create_collection("users")
+        if "receipts" not in collections:
+            await db.create_collection("receipts")
+        print("✅ Database collections initialized")
+        
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        # Don't exit, let the app start and handle errors gracefully
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
