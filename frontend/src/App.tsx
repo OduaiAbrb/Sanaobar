@@ -99,12 +99,20 @@ const suggestedQuestions = [
 ];
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState('dashboard');
+  const [currentScreen, setCurrentScreen] = useState('login');
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
-  const [chatMessages, setChatMessages] = useState(mockChatMessages);
+  const [chatMessages, setChatMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [receipts, setReceipts] = useState([]);
+  const [environmentalImpact, setEnvironmentalImpact] = useState(null);
+  const [spendingAnalytics, setSpendingAnalytics] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({ email: '', password: '', name: '' });
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
   const handleSendMessage = () => {
     if (!currentMessage.trim()) return;
