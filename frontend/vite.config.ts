@@ -8,12 +8,8 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    host: true,
+    host: '0.0.0.0',
     port: 3000,
-    strictPort: true,
-    disableHostCheck: true
-  },
-  define: {
-    global: 'globalThis'
+    allowedHosts: ['all']
   }
 });
