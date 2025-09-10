@@ -612,76 +612,85 @@ function App() {
         {/* Spending by Category */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Spending by Category</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-gray-700">Groceries</span>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">$113.30</div>
-                <div className="text-sm text-gray-500">54%</div>
-              </div>
+          {spendingAnalytics?.category_breakdown && Object.keys(spendingAnalytics.category_breakdown).length > 0 ? (
+            <div className="space-y-3">
+              {Object.entries(spendingAnalytics.category_breakdown).map(([category, amount], index) => {
+                const colors = ['bg-green-500', 'bg-blue-500', 'bg-yellow-500', 'bg-purple-500', 'bg-red-500'];
+                const percentage = ((amount / spendingAnalytics.total_spent) * 100).toFixed(0);
+                
+                return (
+                  <div key={category} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-4 h-4 ${colors[index % colors.length]} rounded`}></div>
+                      <span className="text-gray-700">{category}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">${amount.toFixed(2)}</div>
+                      <div className="text-sm text-gray-500">{percentage}%</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span className="text-gray-700">Personal Care</span>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">$89.25</div>
-                <div className="text-sm text-gray-500">42%</div>
-              </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <PieChart className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No spending data available yet.</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                <span className="text-gray-700">Dining</span>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">$12.45</div>
-                <div className="text-sm text-gray-500">4%</div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Monthly Spending */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Spending</h3>
-          <div className="space-y-4">
-            {['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'].map((month, index) => {
-              const amounts = [180, 220, 195, 240, 175, 215];
-              const amount = amounts[index];
-              const percentage = (amount / 240) * 100;
-              
-              return (
-                <div key={month} className="flex items-center space-x-3">
-                  <div className="w-8 text-sm font-medium text-gray-600">{month}</div>
-                  <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
-                    <div 
-                      className="bg-green-500 h-6 rounded-full flex items-center justify-end pr-2"
-                      style={{ width: `${percentage}%` }}
-                    >
-                      <span className="text-xs font-medium text-white">${amount}</span>
+          {spendingAnalytics?.monthly_spending && spendingAnalytics.monthly_spending.length > 0 ? (
+            <div className="space-y-4">
+              {spendingAnalytics.monthly_spending.map((monthData, index) => {
+                const maxAmount = Math.max(...spendingAnalytics.monthly_spending.map(m => m.amount));
+                const percentage = maxAmount > 0 ? (monthData.amount / maxAmount) * 100 : 0;
+                
+                return (
+                  <div key={monthData.month} className="flex items-center space-x-3">
+                    <div className="w-8 text-sm font-medium text-gray-600">{monthData.month}</div>
+                    <div className="flex-1 bg-gray-200 rounded-full h-6 relative">
+                      <div 
+                        className="bg-green-500 h-6 rounded-full flex items-center justify-end pr-2"
+                        style={{ width: `${percentage}%` }}
+                      >
+                        {percentage > 20 && (
+                          <span className="text-xs font-medium text-white">${monthData.amount}</span>
+                        )}
+                      </div>
+                      {percentage <= 20 && (
+                        <span className="absolute right-2 top-0 h-6 flex items-center text-xs font-medium text-gray-600">
+                          ${monthData.amount}
+                        </span>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No monthly data available yet.</p>
+            </div>
+          )}
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
             <DollarSign className="w-6 h-6 text-green-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">$215</div>
-            <div className="text-sm text-gray-500">This Month</div>
+            <div className="text-2xl font-bold text-gray-900">
+              ${spendingAnalytics?.total_spent?.toFixed(2) || '0.00'}
+            </div>
+            <div className="text-sm text-gray-500">Total Spent</div>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
             <Calendar className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">4</div>
+            <div className="text-2xl font-bold text-gray-900">{receipts.length}</div>
             <div className="text-sm text-gray-500">Receipts</div>
           </div>
         </div>
