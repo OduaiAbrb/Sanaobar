@@ -31,7 +31,9 @@ app.add_middleware(
 # MongoDB setup
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.ecoreceipt
+# Use database name from environment or default
+DB_NAME = os.getenv("DB_NAME", "ecoreceipt")
+db = client[DB_NAME]
 
 # JWT settings
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
