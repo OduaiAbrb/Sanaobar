@@ -1,0 +1,17 @@
+{
+  "name": "ecoreceipt-app",
+  "version": "1.0.0",
+  "description": "EcoReceipt - Digital Receipt Manager with Environmental Impact Tracking",
+  "main": "backend/server.py",
+  "scripts": {
+    "start": "./start.sh",
+    "build": "cd frontend && yarn build",
+    "install:all": "cd backend && pip install -r requirements.txt && cd ../frontend && yarn install",
+    "dev": "cd backend && python server.py & cd frontend && yarn dev"
+  },
+  "keywords": ["receipt", "environment", "sustainability", "digital", "ai"],
+  "author": "EcoReceipt Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
