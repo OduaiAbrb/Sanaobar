@@ -51,17 +51,20 @@ const apiService = {
 
   async getReceipts() {
     const response = await this.fetchWithAuth('/api/receipts');
-    return response?.json();
+    if (!response) return [];
+    return response.json();
   },
 
   async getEnvironmentalImpact() {
     const response = await this.fetchWithAuth('/api/analytics/environmental-impact');
-    return response?.json();
+    if (!response) return null;
+    return response.json();
   },
 
   async getSpendingAnalytics() {
     const response = await this.fetchWithAuth('/api/analytics/spending');
-    return response?.json();
+    if (!response) return null;
+    return response.json();
   },
 
   async sendChatMessage(message: string) {
