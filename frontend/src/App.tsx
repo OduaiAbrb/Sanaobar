@@ -168,7 +168,21 @@ function App() {
         localStorage.setItem('user', JSON.stringify(result.user));
         setUser(result.user);
         setCurrentScreen('dashboard');
-        loadData();
+        
+        // Load data immediately after login with user data
+        try {
+          const [receiptsData, impactData, analyticsData] = await Promise.all([
+            apiService.getReceipts(),
+            apiService.getEnvironmentalImpact(),
+            apiService.getSpendingAnalytics()
+          ]);
+          
+          setReceipts(receiptsData || []);
+          setEnvironmentalImpact(impactData);
+          setSpendingAnalytics(analyticsData);
+        } catch (error) {
+          console.error('Error loading data after login:', error);
+        }
       } else {
         alert('Login failed: ' + (result.detail || 'Unknown error'));
       }
