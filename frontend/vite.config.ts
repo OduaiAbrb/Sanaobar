@@ -8,8 +8,13 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    host: true, // Allow external connections
+    host: '0.0.0.0', // Allow external connections
     port: 3000,
-    allowedHosts: ['all'] // Allow all hosts
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'receipt-tracker-29.preview.emergentagent.com',
+      '.preview.emergentagent.com' // Allow all preview subdomains
+    ]
   }
 });
