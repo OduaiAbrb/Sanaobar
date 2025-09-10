@@ -256,15 +256,110 @@ function App() {
     }
   });
 
+  const renderLoginRegister = () => (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">EcoReceipt</h1>
+          <p className="text-gray-600">Digital Receipt Manager</p>
+        </div>
+
+        {!isRegisterMode ? (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                required
+                value={loginForm.email}
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                required
+                value={registerForm.name}
+                onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                required
+                value={registerForm.email}
+                onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={registerForm.password}
+                onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </form>
+        )}
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setIsRegisterMode(!isRegisterMode)}
+            className="text-green-600 hover:text-green-700 text-sm"
+          >
+            {isRegisterMode ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderDashboard = () => (
     <div className="flex-1 overflow-y-auto pb-20">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">EcoReceipt</h1>
-          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+          <button 
+            onClick={handleLogout}
+            className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+          >
             <User className="w-5 h-5 text-white" />
-          </div>
+          </button>
         </div>
       </header>
 
@@ -275,17 +370,17 @@ function App() {
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <TreePine className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">0.15</div>
+              <div className="text-2xl font-bold">{environmentalImpact?.trees_saved || 0}</div>
               <div className="text-sm opacity-90">Trees Saved</div>
             </div>
             <div className="text-center">
               <Droplet className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">25L</div>
+              <div className="text-2xl font-bold">{environmentalImpact?.water_saved || 0}L</div>
               <div className="text-sm opacity-90">Water Saved</div>
             </div>
             <div className="text-center">
               <Leaf className="w-8 h-8 mx-auto mb-2" />
-              <div className="text-2xl font-bold">5 kg</div>
+              <div className="text-2xl font-bold">{environmentalImpact?.co2_reduced || 0} kg</div>
               <div className="text-sm opacity-90">CO₂ Reduced</div>
             </div>
           </div>
@@ -295,41 +390,51 @@ function App() {
       {/* Recent Receipts */}
       <div className="px-4 pb-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Receipts</h3>
-        <div className="space-y-3">
-          {mockReceipts.slice(0, 4).map((receipt) => (
-            <div 
-              key={receipt.id}
-              className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => {
-                setSelectedReceipt(receipt);
-                setCurrentScreen('receiptDetail');
-              }}
-            >
-              <div className="flex items-center space-x-4">
-                <img 
-                  src={receipt.logo} 
-                  alt={receipt.retailer} 
-                  className="w-12 h-12 rounded-lg"
-                />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{receipt.retailer}</h4>
-                  <p className="text-sm text-gray-500">{receipt.date}</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">${receipt.total.toFixed(2)}</div>
-                  <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                    {receipt.category}
+        {receipts.length > 0 ? (
+          <div className="space-y-3">
+            {receipts.slice(0, 4).map((receipt) => (
+              <div 
+                key={receipt.id}
+                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedReceipt(receipt);
+                  setCurrentScreen('receiptDetail');
+                }}
+              >
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={receipt.logo || 'https://placehold.co/50x50/4CAF50/FFFFFF?text=R'} 
+                    alt={receipt.retailer} 
+                    className="w-12 h-12 rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{receipt.retailer}</h4>
+                    <p className="text-sm text-gray-500">{receipt.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900">${receipt.total.toFixed(2)}</div>
+                    <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                      {receipt.category}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <QrCode className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>No receipts yet. Start adding your digital receipts!</p>
+          </div>
+        )}
       </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-24 right-4 z-50">
-        <button className="w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105">
+        <button 
+          onClick={() => alert('OCR functionality coming soon! For now, receipts are added via the demo data.')}
+          className="w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
+        >
           <QrCode className="w-6 h-6 text-white" />
         </button>
       </div>
