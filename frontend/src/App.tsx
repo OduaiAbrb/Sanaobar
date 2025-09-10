@@ -785,6 +785,10 @@ function App() {
   );
 
   const renderCurrentScreen = () => {
+    if (currentScreen === 'login') {
+      return renderLoginRegister();
+    }
+    
     switch (currentScreen) {
       case 'dashboard':
         return renderDashboard();
