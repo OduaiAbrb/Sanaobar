@@ -204,7 +204,21 @@ function App() {
         localStorage.setItem('user', JSON.stringify(result.user));
         setUser(result.user);
         setCurrentScreen('dashboard');
-        loadData();
+        
+        // Load data immediately after registration
+        try {
+          const [receiptsData, impactData, analyticsData] = await Promise.all([
+            apiService.getReceipts(),
+            apiService.getEnvironmentalImpact(),
+            apiService.getSpendingAnalytics()
+          ]);
+          
+          setReceipts(receiptsData || []);
+          setEnvironmentalImpact(impactData);
+          setSpendingAnalytics(analyticsData);
+        } catch (error) {
+          console.error('Error loading data after registration:', error);
+        }
       } else {
         alert('Registration failed: ' + (result.detail || 'Unknown error'));
       }
