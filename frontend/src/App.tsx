@@ -812,31 +812,33 @@ function App() {
       {/* Main Content */}
       {renderCurrentScreen()}
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
-        <div className="flex justify-around">
-          {[
-            { id: 'dashboard', icon: Home, label: 'Home' },
-            { id: 'receipts', icon: List, label: 'Receipts' },
-            { id: 'analytics', icon: PieChart, label: 'Analytics' },
-            { id: 'ai', icon: Sparkles, label: 'AI Chat' },
-            { id: 'profile', icon: User, label: 'Profile' }
-          ].map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              onClick={() => setCurrentScreen(id)}
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-                currentScreen === id 
-                  ? 'text-green-500 bg-green-50' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Icon className="w-5 h-5 mb-1" />
-              <span className="text-xs">{label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* Bottom Navigation - Only show when logged in */}
+      {currentScreen !== 'login' && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
+          <div className="flex justify-around">
+            {[
+              { id: 'dashboard', icon: Home, label: 'Home' },
+              { id: 'receipts', icon: List, label: 'Receipts' },
+              { id: 'analytics', icon: PieChart, label: 'Analytics' },
+              { id: 'ai', icon: Sparkles, label: 'AI Chat' },
+              { id: 'profile', icon: User, label: 'Profile' }
+            ].map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setCurrentScreen(id)}
+                className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+                  currentScreen === id 
+                    ? 'text-green-500 bg-green-50' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon className="w-5 h-5 mb-1" />
+                <span className="text-xs">{label}</span>
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
