@@ -114,17 +114,124 @@ function App() {
   const [registerForm, setRegisterForm] = useState({ email: '', password: '', name: '' });
   const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-  const handleSendMessage = () => {
+  // Check for existing auth on mount
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+      setCurrentScreen('dashboard');
+      loadData();
+    }
+  }, []);
+
+  // Initialize chat messages when user logs in
+  useEffect(() => {
+    if (user && chatMessages.length === 0) {
+      setChatMessages([{
+        type: 'ai',
+        message: `Hello ${user.name}! I'm your Eco Assistant. I can help you analyze your spending patterns and environmental impact. How can I help you today?`
+      }]);
+    }
+  }, [user]);
+
+  const loadData = async () => {
+    if (!user) return;
+    
+    try {
+      const [receiptsData, impactData, analyticsData] = await Promise.all([
+        apiService.getReceipts(),
+        apiService.getEnvironmentalImpact(),
+        apiService.getSpendingAnalytics()
+      ]);
+      
+      setReceipts(receiptsData || []);
+      setEnvironmentalImpact(impactData);
+      setSpendingAnalytics(analyticsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const result = await apiService.login(loginForm.email, loginForm.password);
+      if (result.access_token) {
+        localStorage.setItem('access_token', result.access_token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        setUser(result.user);
+        setCurrentScreen('dashboard');
+        loadData();
+      } else {
+        alert('Login failed: ' + (result.detail || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const result = await apiService.register(registerForm.email, registerForm.password, registerForm.name);
+      if (result.access_token) {
+        localStorage.setItem('access_token', result.access_token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        setUser(result.user);
+        setCurrentScreen('dashboard');
+        loadData();
+      } else {
+        alert('Registration failed: ' + (result.detail || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Registration failed: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setCurrentScreen('login');
+    setReceipts([]);
+    setEnvironmentalImpact(null);
+    setSpendingAnalytics(null);
+    setChatMessages([]);
+  };
+
+  const handleSendMessage = async () => {
     if (!currentMessage.trim()) return;
     
     const userMessage = { type: 'user', message: currentMessage };
-    const aiResponse = { 
-      type: 'ai', 
-      message: `I understand you're asking about "${currentMessage}". Based on your spending data, I can see some interesting patterns. This is a demo response - in a real app, I'd analyze your actual data to provide personalized insights!` 
-    };
-    
-    setChatMessages([...chatMessages, userMessage, aiResponse]);
+    setChatMessages(prev => [...prev, userMessage]);
     setCurrentMessage('');
+    setLoading(true);
+    
+    try {
+      const result = await apiService.sendChatMessage(currentMessage);
+      const aiResponse = { 
+        type: 'ai', 
+        message: result.response || "I'm having trouble connecting right now. Please try again!"
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      const errorResponse = { 
+        type: 'ai', 
+        message: "I'm having trouble connecting right now. Please try again!"
+      };
+      setChatMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSuggestedQuestion = (question) => {
